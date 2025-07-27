@@ -1,6 +1,6 @@
 # hawkZip: High-Performance Lossy Compression for Floating-Point Data
 
-**Modified by Benjamin Harks, Likith Kadiyala, and Aaron Clinkenbeard**  
+**Modified by Likith Kadiyala**  
 *University of Iowa CS:4700 Final Project*
 
 ## Overview
