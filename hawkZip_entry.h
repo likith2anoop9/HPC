@@ -5,22 +5,18 @@
 #include "hawkZip_compressor.h"
 
 void hawkZip_compress(float* oriData, unsigned char* cmpData, size_t nbEle, size_t* cmpSize, float errorBound)
-{
+{ 
+    int NUM_THREADS = omp_get_max_threads();
+    if (NUM_THREADS > MAX_NUM_THREADS) NUM_THREADS = MAX_NUM_THREADS;
+    // If the number of elements is small, use less threads.
+    if (nbEle < 1000000) NUM_THREADS = (NUM_THREADS > 2) ? NUM_THREADS / 2 : 1;
+    
     // Variables used in compression kernel
-    // Calculate max possible blocks needed based on max threads
-    int max_threads = omp_get_max_threads();
-    if (max_threads > MAX_THREADS) max_threads = MAX_THREADS;
-    
-    // Determine block count dynamically
-    int blockNum = ((nbEle + max_threads - 1) / max_threads + 31) / 32 * max_threads;
-    
-    // Allocate memory for compression data structures
-    int* absQuant = (int*)calloc(nbEle, sizeof(int));
-    unsigned int* signFlag = (unsigned int*)calloc(blockNum, sizeof(unsigned int));
-    int* fixedRate = (int*)calloc(blockNum, sizeof(int));
-    unsigned int* threadOfs = (unsigned int*)calloc(max_threads, sizeof(unsigned int));
-    
-    // Initialize output buffer
+    int blockNum = ((nbEle + NUM_THREADS - 1) / NUM_THREADS  + 31) / 32 * NUM_THREADS;
+    int* absQuant = (int*)malloc(sizeof(int)*nbEle);
+    unsigned int* signFlag = (unsigned int*)malloc(sizeof(unsigned int)*blockNum);
+    int* fixedRate = (int*)malloc(sizeof(int)*blockNum);
+    unsigned int* threadOfs = (unsigned int*)malloc(sizeof(unsigned int)*NUM_THREADS);
     memset(cmpData, 0, sizeof(float)*nbEle);
     double timerCMP_start, timerCMP_end;
 
@@ -42,20 +38,17 @@ void hawkZip_compress(float* oriData, unsigned char* cmpData, size_t nbEle, size
 
 void hawkZip_decompress(float* decData, unsigned char* cmpData, size_t nbEle, float errorBound)
 {
+    int NUM_THREADS = omp_get_max_threads();
+    if (NUM_THREADS > MAX_NUM_THREADS) NUM_THREADS = MAX_NUM_THREADS;
+    // If the number of elements is small, use less threads.
+    if (nbEle < 1000000) NUM_THREADS = (NUM_THREADS > 2) ? NUM_THREADS / 2 : 1;
+
     // Varaibles used in decompression kernel
-    // Calculate max possible blocks needed based on max threads
-    int max_threads = omp_get_max_threads();
-    if (max_threads > MAX_THREADS) max_threads = MAX_THREADS;
-    
-    // Determine block count dynamically
-    int blockNum = ((nbEle + max_threads - 1) / max_threads + 31) / 32 * max_threads;
-    
-    // Allocate memory for decompression data structures
-    int* absQuant = (int*)calloc(nbEle, sizeof(int));
-    int* fixedRate = (int*)calloc(blockNum, sizeof(int));
-    unsigned int* threadOfs = (unsigned int*)calloc(max_threads, sizeof(unsigned int));
-    
-    // Initialize output buffer
+    int blockNum = ((nbEle + NUM_THREADS - 1) / NUM_THREADS  + 31) / 32 * NUM_THREADS;
+    int* absQuant = (int*)malloc(sizeof(int)*nbEle);
+    memset(absQuant, 0, sizeof(int)*nbEle);
+    int* fixedRate = (int*)malloc(sizeof(int)*blockNum);
+    unsigned int* threadOfs = (unsigned int*)malloc(sizeof(unsigned int)*NUM_THREADS);
     memset(decData, 0, sizeof(float)*nbEle);
     double timerDEC_start, timerDEC_end;
 
