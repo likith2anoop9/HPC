@@ -138,5 +138,3 @@ Built-in computation of:
 - **SSIM** (Structural Similarity Index)
 - **MSE** (Mean Square Error)
 - **NRMSE** (Normalized Root Mean Square Error)
-
-## Project Structure
